@@ -2,6 +2,16 @@
 
 > **Maintenance rule:** This file preserves chronological project context, decisions, analyses, validations, pending work, and the reasons that matter for interpreting them. Keep entries in reverse chronological order, with the newest entry immediately below this introductory rule. Edit it only when the user explicitly requests an update to `MEMORY.md`. Task completion, session end, new results, or code changes do not by themselves authorize an edit.
 
+## 2026-10-07 — Repeated-copy hint refresh and Pure Paste coalescing
+
+Rapid copy activations could arrive while the HUD was still visible or its sound was playing, but the existing hint would not clearly refresh. `HUDController.swift` now restarts the dismissal timer on each activation, flashes the HUD once when it is already visible (or the alert sound is still playing), and guards animation completion so a stale fade cannot hide a newer hint. `AppDelegate.swift` retains and restarts the selected `NSSound` from the beginning on each activation. `ClipboardMonitor.swift` was also adjusted so rapid consecutive `Cmd+C` presses are not dropped by debounce logic.
+
+Pure Paste can rewrite the pasteboard after a context-menu copy to remove formatting, causing `NSPasteboard.changeCount` to change twice and ClipAlert to show duplicate hints. The monitor now triggers immediately on the first pasteboard-only change and coalesces subsequent pasteboard changes within 500 ms; the separate 250 ms suppression of the pasteboard event paired with `Cmd+C` preserves immediate keyboard feedback. This may group two independent context-menu copies made within the coalescing interval. Luiz reports that the Pure Paste adjustment appears to be working well; runtime validation with Pure Paste was not independently performed in this session.
+
+## 2026-10-07 — Git repository initialization and GitHub publication
+
+The ClipAlert project was initialized as a local Git repository and published to GitHub. A `.gitignore` was configured to exclude macOS artifacts (`.DS_Store`) and build outputs (`build/`, `*.app`) to prevent compiled binaries and local state from syncing to remote version control.
+
 ## 2026-10-07 — Initial ClipAlert architecture, HUD design iterations, and macOS TCC resolution
 
 This entry records the initial architecture, design decisions, iterative visual refinements, and security/permissions resolution for the ClipAlert macOS application.

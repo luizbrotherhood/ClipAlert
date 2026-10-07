@@ -4,6 +4,8 @@ import QuartzCore
 final class HUDController {
     private var window: NSPanel?
     private var dismissTimer: Timer?
+    private let visibilityAnimationKey = "ClipAlert.hud.visibility"
+    private var presentationGeneration: UInt64 = 0
     
     init() {
         setupWindow()
@@ -69,12 +71,18 @@ final class HUDController {
         self.window = panel
     }
     
-    func show() {
+    func show(flash: Bool = false) {
         guard let window = self.window else { return }
         
-        // Cancel existing timer and animation
+        let shouldFlash = window.isVisible || flash
+        presentationGeneration &+= 1
+        let generation = presentationGeneration
         dismissTimer?.invalidate()
         dismissTimer = nil
+        
+        let contentLayer = window.contentView?.layer
+        contentLayer?.removeAnimation(forKey: visibilityAnimationKey)
+        contentLayer?.opacity = 1.0
         
         // Center on the active screen
         let targetScreen = NSScreen.main ?? NSScreen.screens.first
@@ -84,25 +92,46 @@ final class HUDController {
             window.setFrameOrigin(NSPoint(x: x, y: y))
         }
         
-        window.alphaValue = 1.0
         window.orderFrontRegardless()
+        if shouldFlash, let contentLayer = contentLayer {
+            let flash = CAKeyframeAnimation(keyPath: "opacity")
+            flash.values = [1.0, 0.25, 1.0]
+            flash.keyTimes = [0.0, 0.5, 1.0]
+            flash.duration = 0.24
+            contentLayer.add(flash, forKey: visibilityAnimationKey)
+        }
         
-        // Schedule fade out (0.90s - double the previous 0.45s)
+        // Restart the dismissal timer after every copy activation.
         dismissTimer = Timer.scheduledTimer(withTimeInterval: 0.90, repeats: false) { [weak self] _ in
-            self?.fadeOut()
+            guard let self = self, self.presentationGeneration == generation else { return }
+            self.fadeOut(generation: generation)
         }
     }
     
-    private func fadeOut() {
-        guard let window = self.window else { return }
+    private func fadeOut(generation: UInt64) {
+        guard presentationGeneration == generation,
+              let window = self.window,
+              let contentLayer = window.contentView?.layer else { return }
         
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.25
-            window.animator().alphaValue = 0.0
-        }, completionHandler: {
-            if window.alphaValue == 0.0 {
-                window.orderOut(nil)
-            }
-        })
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = contentLayer.presentation()?.opacity ?? contentLayer.opacity
+        fade.toValue = 0.0
+        fade.duration = 0.25
+        fade.fillMode = .forwards
+        fade.isRemovedOnCompletion = false
+        
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self, weak window, weak contentLayer] in
+            guard let self = self,
+                  self.presentationGeneration == generation,
+                  let window = window,
+                  let contentLayer = contentLayer else { return }
+            window.orderOut(nil)
+            contentLayer.removeAnimation(forKey: self.visibilityAnimationKey)
+            contentLayer.opacity = 1.0
+        }
+        contentLayer.opacity = 0.0
+        contentLayer.add(fade, forKey: visibilityAnimationKey)
+        CATransaction.commit()
     }
 }

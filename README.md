@@ -16,7 +16,7 @@ When working on macOS, users frequently trigger `Cmd+C` without receiving tactil
 2. **Dual-Trigger Detection**:
    - **Keystroke Interception (`CGEventTap`)**: Detects `Cmd+C` at the system event tap level, triggering feedback even when copying the same text repeatedly where pasteboard content remains unchanged.
    - **Pasteboard Polling (`NSPasteboard`)**: Monitors `changeCount` at 150ms intervals to catch copies initiated through context menus (Right-Click -> Copy) or application menus.
-   - **Smart Debounce**: A 250ms debounce window prevents double-triggering when both the keypress and the pasteboard modification fire simultaneously.
+   - **Smart Debounce**: A 250ms window suppresses the pasteboard update paired with `Cmd+C`. Pasteboard-only changes trigger immediately, while changes within 500ms of a previous pasteboard change are coalesced to avoid duplicate alerts from clipboard-cleaning utilities.
 3. **Menu Bar Controls**:
    - Independent toggles for visual HUD and sound feedback.
    - Sound effect selector (`Tink`, `Pop`, `Bottle`, `Purr`, `Ping`).

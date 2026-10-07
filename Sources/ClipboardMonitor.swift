@@ -30,7 +30,8 @@ final class ClipboardMonitor {
     private var runLoopSource: CFRunLoopSource?
     private var pasteboardTimer: Timer?
     private var lastChangeCount: Int
-    private var lastTriggerTime: TimeInterval = 0
+    private var lastKeyboardTriggerTime: TimeInterval?
+    private var lastPasteboardChangeTime: TimeInterval?
     
     var onCopyDetected: (() -> Void)?
     
@@ -126,7 +127,7 @@ final class ClipboardMonitor {
         let isKeyC = nsEvent.keyCode == 8 || nsEvent.charactersIgnoringModifiers?.lowercased() == "c"
         
         if isCommandPressed && isKeyC {
-            notifyCopy()
+            notifyCopy(isKeyboardShortcut: true)
         }
     }
     
@@ -142,14 +143,27 @@ final class ClipboardMonitor {
         }
     }
     
-    private func notifyCopy() {
-        let now = Date().timeIntervalSince1970
-        // Prevent duplicate trigger within 250ms when both key event and pasteboard change fire
-        if now - lastTriggerTime > 0.25 {
-            lastTriggerTime = now
+    private func notifyCopy(isKeyboardShortcut: Bool = false) {
+        let now = ProcessInfo.processInfo.systemUptime
+        if isKeyboardShortcut {
+            lastKeyboardTriggerTime = now
             DispatchQueue.main.async { [weak self] in
                 self?.onCopyDetected?()
             }
+            return
+        }
+        
+        // Suppress the pasteboard update paired with a recent Cmd+C.
+        let isPairedKeyboardUpdate = lastKeyboardTriggerTime.map { now - $0 <= 0.25 } ?? false
+        
+        // Record every observed change, including a paired keyboard update, so follow-up
+        // rewrites by clipboard utilities are coalesced with the original copy.
+        let isRapidPasteboardChange = lastPasteboardChangeTime.map { now - $0 <= 0.5 } ?? false
+        lastPasteboardChangeTime = now
+        guard !isPairedKeyboardUpdate, !isRapidPasteboardChange else { return }
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.onCopyDetected?()
         }
     }
 }

@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let defaultsKeySoundName = "soundName"
     
     private let availableSounds = ["Tink", "Pop", "Bottle", "Purr", "Ping"]
+    private var alertSound: NSSound?
+    private var alertSoundName: String?
     
     var isVisualFeedbackEnabled: Bool {
         get {
@@ -81,7 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     
     private func handleCopyDetected() {
         if isVisualFeedbackEnabled {
-            hudController.show()
+            hudController.show(flash: alertSound?.isPlaying ?? false)
         }
         if isSoundFeedbackEnabled {
             playAlertSound(name: selectedSoundName)
@@ -89,9 +91,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     
     private func playAlertSound(name: String) {
-        if let sound = NSSound(named: NSSound.Name(name)) {
-            sound.play()
+        if alertSoundName != name {
+            alertSound?.stop()
+            alertSound = NSSound(named: NSSound.Name(name))
+            alertSoundName = name
         }
+        
+        guard let sound = alertSound else { return }
+        sound.stop()
+        sound.currentTime = 0
+        sound.play()
     }
     
     func menuNeedsUpdate(_ menu: NSMenu) {
