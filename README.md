@@ -37,22 +37,26 @@ When working on macOS, users frequently trigger `Cmd+C` without receiving tactil
 
 ---
 
-## Build and Run
+## Build
 
-To compile, code-sign, and launch ClipAlert, run the build script from the project root:
+To compile and code-sign ClipAlert without launching it, run the build script from the project root:
 
 ```bash
 cd /Users/luizbrotherhood/Dropbox/ClipAlert
-./build.sh run
+./build.sh
 ```
 
-The script automatically:
-1. Closes any previously running instance of ClipAlert.
-2. Generates a fresh `.app` bundle structure in `build/ClipAlert.app`.
-3. Creates the `Info.plist` with agent settings.
-4. Compiles the Swift sources with optimizations (`-O`).
-5. Signs the application bundle with an ad-hoc identity (`codesign --force --deep --sign -`).
-6. Launches the application.
+This generates a fresh `.app` bundle at `build/ClipAlert.app`, creates its `Info.plist`, compiles the Swift sources with optimizations (`-O`), and signs the bundle with an ad-hoc identity. It closes any previously running instance but does not launch the app.
+
+## Build and Run
+
+To rebuild ClipAlert and launch it, run:
+
+```bash
+./build_and_run.sh
+```
+
+This script closes any previously running instance, builds and signs the `.app`, then launches it.
 
 ---
 
@@ -63,6 +67,6 @@ Global keystroke detection (`Cmd+C`) requires macOS Accessibility permission und
 If you need to reset or refresh permissions after rebuilding:
 ```bash
 tccutil reset Accessibility com.luizbrotherhood.clipalert
-cd /Users/luizbrotherhood/Dropbox/ClipAlert && ./build.sh run
+cd /Users/luizbrotherhood/Dropbox/ClipAlert && ./build_and_run.sh
 ```
 When prompted, enable ClipAlert in the System Settings list. The menu bar icon will confirm with `✓ Accessibility Granted`.

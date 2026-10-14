@@ -66,8 +66,3 @@ codesign --force --deep --sign - "${APP_BUNDLE}"
 
 echo "==> Build finished successfully!"
 echo "==> App bundle created at: ${APP_BUNDLE}"
-
-if [ "${1:-}" = "run" ]; then
-    echo "==> Launching ${APP_NAME}..."
-    open "${APP_BUNDLE}"
-fi
