@@ -121,12 +121,19 @@ final class ClipboardMonitor {
         guard let nsEvent = NSEvent(cgEvent: event) else { return }
         
         let flags = nsEvent.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        let isCommandPressed = flags.contains(.command) && !flags.contains(.control) && !flags.contains(.option)
+        let hasNoOtherModifiers = !flags.contains(.control) && !flags.contains(.option)
         
-        // Keycode 8 corresponds to 'c' on standard QWERTY and ABNT2 keyboards
+        // Keycode 8 corresponds to 'c' on standard QWERTY and ABNT2 keyboards.
         let isKeyC = nsEvent.keyCode == 8 || nsEvent.charactersIgnoringModifiers?.lowercased() == "c"
         
-        if isCommandPressed && isKeyC {
+        // CGEventFlags.command combines left and right Command. Keycode 55 is the
+        // physical left-Command key; checking it ignores right-Command shortcuts.
+        let isLeftCommandPressed = CGEventSource.keyState(
+            .combinedSessionState,
+            key: 55
+        )
+        
+        if isLeftCommandPressed && hasNoOtherModifiers && isKeyC {
             notifyCopy(isKeyboardShortcut: true)
         }
     }
