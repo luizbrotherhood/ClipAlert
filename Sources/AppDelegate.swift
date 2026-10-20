@@ -5,6 +5,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let hudController = HUDController()
     private let clipboardMonitor = ClipboardMonitor()
     
+    private let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
+
     private let defaultsKeyVisual = "visualFeedbackEnabled"
     private let defaultsKeySound = "soundFeedbackEnabled"
     private let defaultsKeySoundName = "soundName"
@@ -112,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         
         // Title header
-        let headerItem = NSMenuItem(title: "ClipAlert", action: nil, keyEquivalent: "")
+        let headerItem = NSMenuItem(title: "ClipAlert (v\(appVersion))", action: nil, keyEquivalent: "")
         headerItem.isEnabled = false
         menu.addItem(headerItem)
         

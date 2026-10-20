@@ -37,6 +37,12 @@ When working on macOS, users frequently trigger `Cmd+C` without receiving tactil
 
 ---
 
+## Versioning
+
+The app version is stored in the root `VERSION` file as a single integer. It starts at `1`; increment it by one for every app change before committing. Both build scripts use this value for the app bundle metadata, and the menu header displays it as `ClipAlert (vN)`.
+
+---
+
 ## Build
 
 To compile and code-sign ClipAlert without launching it, run the build script from the project root:
@@ -67,6 +73,6 @@ Global keystroke detection (`Cmd+C`) requires macOS Accessibility permission und
 If you need to reset or refresh permissions after rebuilding:
 ```bash
 tccutil reset Accessibility com.luizbrotherhood.clipalert
-cd /Users/luizbrotherhood/Dropbox/ClipAlert && ./build_and_run.sh
+cd /Users/luizbrotherhood/Dropbox/ClipAlert && ./build.sh
 ```
 When prompted, enable ClipAlert in the System Settings list. The menu bar icon will confirm with `✓ Accessibility Granted`.

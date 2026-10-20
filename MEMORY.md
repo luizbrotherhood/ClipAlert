@@ -2,6 +2,10 @@
 
 > **Maintenance rule:** This file preserves chronological project context, decisions, analyses, validations, pending work, and the reasons that matter for interpreting them. Keep entries in reverse chronological order, with the newest entry immediately below this introductory rule. Edit it only when the user explicitly requests an update to `MEMORY.md`. Task completion, session end, new results, or code changes do not by themselves authorize an edit.
 
+## 2026-10-20 — Integer app version shown in menu
+
+Added a root `VERSION` file, initialized to `1`, as the single source of truth for the app's integer version. Both `build.sh` and `build_and_run.sh` write it to `CFBundleShortVersionString` and `CFBundleVersion`; `AppDelegate` reads `CFBundleVersion` and displays the menu header as `ClipAlert (vN)`. The README documents incrementing the version by one for every app change before committing. Swift type-checking, shell syntax checks, and `git diff --check` passed; the app was not launched during validation.
+
 ## 2026-10-20 — Ignore right Command+C shortcuts
 
 `ClipboardMonitor.swift` now distinguishes the physical left Command key from the right Command key when detecting `Cmd+C`. Since the aggregate Command modifier flag does not identify which side was pressed, the monitor checks the left Command key state (virtual keycode 55) and only triggers keyboard feedback when left Command+C is used. Pasteboard monitoring remains unchanged, so copies detected through clipboard changes can still trigger alerts. Luiz tested the change on the Mac Mini M2 and confirmed that right Command+C, used by LaunchPalette to open the calendar, no longer activates the visual or audio hint.
